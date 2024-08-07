@@ -89,7 +89,7 @@ impl Vec2d {
             write!(buffer, "-")?;
         }
         write!(buffer, "+")?;
-        write!(buffer, "\r\n");
+        write!(buffer, "\r\n")?;
 
         Ok(())
     }
@@ -120,8 +120,13 @@ struct Food {
 }
 
 impl Food {
-    fn new(grid: &Vec2d) -> Food{
-        let (x, y) = grid.pick_random();
+    fn new(grid: &Vec2d, old_food: Option<Food>) -> Food{
+        let (mut x, mut y) = grid.pick_random();
+        if let Some(old) = old_food {
+            if x == old.x || y == old.y {
+                (x, y) = grid.pick_random();
+            }
+        }
         Food {x, y}
     }
 } 
@@ -324,15 +329,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     print!("{ESCAPE}?25l"); // Removes Cursor
     let size = terminal_size();
     let size = size.unwrap();
-    let width: u16 = size.0.0 / 3;
-    let height: u16 = size.1.0 / 2;
-    
+    //let width: u16 = size.0.0 / 3;
+    //let height: u16 = size.1.0 / 2;
+    let width = 20;
+    let height = 20;
+
     let mut grid:  Vec2d = Vec2d::new(width, height);
     let stdout = std::io::stdout();
     let mut out = BufWriter::new(stdout);
      
     let _ = enable_raw_mode();
-    let mut food = Food::new(&grid);
+    let mut food = Food::new(&grid, None);
     let mut snake = Snake::new(&grid);
     
     let mut done = false;
@@ -365,7 +372,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         match check_collison(&mut snake, &grid) {
             Some(Collision::Food) => {
                 grid.delete_food(&food);
-                food = Food::new(&grid);
+                food = Food::new(&grid, Some(food));
                 score += 1;
             },
             Some(Collision::Obstacle) => {
@@ -378,7 +385,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     
     out.flush().expect("Error flushing");
-    thread::sleep(time::Duration::from_millis(500));
+    //thread::sleep(time::Duration::from_millis(500));
+
     let _ = disable_raw_mode();
     println!("{ESCAPE}?25h");
     println!("Game over! Score: {}", score);
