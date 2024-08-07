@@ -329,10 +329,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     print!("{ESCAPE}?25l"); // Removes Cursor
     let size = terminal_size();
     let size = size.unwrap();
-    //let width: u16 = size.0.0 / 3;
-    //let height: u16 = size.1.0 / 2;
-    let width = 20;
-    let height = 20;
+    let width: u16 = size.0.0 / 3;
+    let height: u16 = size.1.0 / 2;
 
     let mut grid:  Vec2d = Vec2d::new(width, height);
     let stdout = std::io::stdout();
